@@ -1,0 +1,111 @@
+# import time
+# import pyupbit
+# import datetime
+# import requests
+# import schedule
+# from fbprophet import Prophet
+from pickle import FALSE, TRUE
+import time
+import os
+import sys
+import logging
+import traceback
+import upbit_api
+import pyupbit
+import telegram
+from datetime import datetime
+
+access = "xwdEMciw0PeGRfpA8xMaVtnVGmFPFxTR6dkKCnUQ"
+secret = "UOxwdGYVZflyTCbMwrlrzB0Ey44GGxSLl70xp8A4"
+slackToken = "xoxb-2958422443234-2961015128436-OlEZV7qGyaamz31X3slydehR"
+teleToken = "5225100528:AAGL0OC4m40gsMkB9haFGm0weJMUSKGqY2U"
+
+
+bot = telegram.Bot(token=teleToken)
+# updates = bot.getUpdates()
+# chat_id = updates[-1].message.chat_id
+
+# bot.sendMessage(chat_id="-796323955", text='test1')
+
+# for update in updates:
+#     print(update.message)
+
+# bot.sendMessage(chat_id=chat_id, text='test2')
+
+while True:
+    
+
+    upbit_api.set_loglevel('I')
+
+    candle_data = upbit_api.get_candle('KRW-BTC', '15', 1)
+    currentPrice = candle_data[0]['trade_price']
+    print(currentPrice)
+
+    candle_data1 = upbit_api.get_candle('KRW-BTC', '15', 200)
+    cci_data1 = upbit_api.get_cci(candle_data1, 1)
+    cci1 = cci_data1[0]['CCI']
+    
+    candle_data2 = upbit_api.get_candle('KRW-BTC', '15', 200)
+    cci_data2 = upbit_api.get_cci(candle_data2, 100)
+    cci2 = cci_data2[0]['CCI']
+
+    print(cci1)
+    print(cci2)
+
+
+    
+    # CCI 조회(15/200개)
+    candle_data = upbit_api.get_candle('KRW-BTC', '15', 200)
+    price = candle_data[0]['trade_price']
+    upLinePrice = price * 1.005
+    downLinePrice = price * 0.0095
+
+    print(c * 0.8)
+    if c > 44861000:
+        print('1')
+    else:
+        print('2')
+    print(candle_data[0]['trade_price'])
+    
+    # cci = upbit_api.get_cci(candle_data, 10)
+    # # print(cci)
+    # print(cci[0]['CCI'])
+    
+    # time.sleep(5)
+    # candle_data_temp = upbit_api.get_candle('KRW-BTC', '15', 200)
+    # cci_data_temp = upbit_api.get_cci(candle_data_temp, 1)
+    # cci_temp = cci_data_temp[0]['CCI']
+    # print(cci_temp)
+        
+    time.sleep(1)
+   
+    #현재 CCI 값 (15분봉 기준)
+    
+
+    
+    # macd_data = upbit_api.get_macd('KRW-BTC', '15', '200', 200)
+
+    # for macd_data_for in macd_data:
+    #     logging.info(macd_data_for)
+    #     # print(macd_data_for['DT'], macd_data_for['MACD'])
+
+    # for cci_for in cci:
+    #     print(cci_for)
+    #     # logging.info(cci_for)
+
+#def get_macd(target_item, tick_kind, inq_range, loop_cnt):
+    # candle_data = get_candle(target_item, tick_kind, inq_range)
+    # macd = upbit_api.get_macd('KRW-BTC', '15', '200', 200)
+
+    # for macd_for in macd:
+    #     print(macd_for)
+    #     # logging.info(cci_for)
+
+
+
+    # # 전체 지표 조회
+    # indicator_data = upbit_api.get_indicators('KRW-BTC', '15', 200, 12)
+
+    # logging.info('전체 지표 조회')
+    # for indicator_data_for in indicator_data:
+    #     logging.info(indicator_data_for)
