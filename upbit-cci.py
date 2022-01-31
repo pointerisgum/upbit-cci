@@ -17,7 +17,7 @@ import telegram
 from datetime import datetime
 import pandas as pd
 import openpyxl
-#o
+
 
 access = "xwdEMciw0PeGRfpA8xMaVtnVGmFPFxTR6dkKCnUQ"
 secret = "UOxwdGYVZflyTCbMwrlrzB0Ey44GGxSLl70xp8A4"
@@ -181,7 +181,7 @@ tickers = ["KRW-BTC", "KRW-ETH", "KRW-BCH", "KRW-AAVE", "KRW-LTC", 'KRW-DOT', 'K
 # tickers = ["KRW-BTC"]
 
 def saveExcel(t, c, b):
-    path = '/Users/apple/Desktop/coint.xlsx'
+    path = '/home/ubuntu/upbit-cci/coint.xlsx'
     
     rate = str(getPer(c, b))
     rateList.append(rate)
@@ -522,6 +522,8 @@ import time
 # tickerList.append('KRW-BTC')
 
 # saveExcel()
+
+saveExcel('ticker', 1000, 900)
 
 for i in tickers:
     t = threading.Thread(target=startAuto, args=(i,)) 
