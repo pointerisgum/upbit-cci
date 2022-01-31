@@ -257,7 +257,7 @@ def startAuto(ticker):
                     sum = currentPrice - buyPrice
                     msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Long Throw', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice)
                     bot.sendMessage(chat_id="-796323955", text=msg)
-                    saveExcel(ticker, currentPrice, buyPrice)
+                    # saveExcel(ticker, currentPrice, buyPrice)
                     
                     isGoldenCross = FALSE
                     isDeadCross = TRUE
@@ -279,7 +279,7 @@ def startAuto(ticker):
                     sum = currentPrice - buyPrice
                     msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Short Throw', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice) * -1
                     bot.sendMessage(chat_id="-796323955", text=msg)
-                    saveExcel(ticker, currentPrice, buyPrice)
+                    # saveExcel(ticker, currentPrice, buyPrice)
                     
                     isGoldenCross = TRUE
                     isDeadCross = FALSE
@@ -408,7 +408,7 @@ def startAuto(ticker):
                     #10배수 썼을 경우 수익률
                     msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Long Stop Loss', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice)
                     bot.sendMessage(chat_id="-796323955", text=msg)
-                    saveExcel(ticker, currentPrice, buyPrice)
+                    # saveExcel(ticker, currentPrice, buyPrice)
                     
                     cciLow = FALSE
                     cciHight = FALSE
@@ -424,7 +424,7 @@ def startAuto(ticker):
                         #익절
                         msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Long Take Profit', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice)
                         bot.sendMessage(chat_id="-796323955", text=msg)
-                        saveExcel(ticker, currentPrice, buyPrice)
+                        # saveExcel(ticker, currentPrice, buyPrice)
                         
                         cciLow = FALSE
                         cciHight = FALSE
@@ -447,7 +447,7 @@ def startAuto(ticker):
                     #손절
                     msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Short Stop Loss', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice) * -1
                     bot.sendMessage(chat_id="-796323955", text=msg)
-                    saveExcel(ticker, currentPrice, buyPrice)
+                    # saveExcel(ticker, currentPrice, buyPrice)
                     
                     cciLow = FALSE
                     cciHight = FALSE
@@ -463,7 +463,7 @@ def startAuto(ticker):
                         #익절
                         msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Short Take Profit', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice) * -1
                         bot.sendMessage(chat_id="-796323955", text=msg)
-                        saveExcel(ticker, currentPrice, buyPrice)
+                        # saveExcel(ticker, currentPrice, buyPrice)
 
                         cciLow = FALSE
                         cciHight = FALSE
@@ -523,7 +523,7 @@ import time
 
 # saveExcel()
 
-saveExcel('ticker', 1000, 900)
+# saveExcel('ticker', 1000, 900)
 
 for i in tickers:
     t = threading.Thread(target=startAuto, args=(i,)) 
