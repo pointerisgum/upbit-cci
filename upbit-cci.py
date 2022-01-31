@@ -40,6 +40,21 @@ bot = telegram.Bot(token=teleToken)
 
 # bot.sendMessage(chat_id=chat_id, text='test2')
 
+# isTest = FALSE
+# cnt = 0
+# while isTest == FALSE:
+#     cnt += 1
+#     print(cnt)
+#     if cnt == 5:
+#         # isTest = TRUE
+#         break
+#     time.sleep(1)
+
+    
+
+# candle_data = upbit_api.get_candle('KRW-DOT', '15', 200)
+# cci_data = upbit_api.get_cci(candle_data, 10)
+# print(cci_data)
 
 try:
 
@@ -210,6 +225,32 @@ def updateCCI(ticker, sleepSec):
     cci = cci_data[0]['CCI']
     return cci
 
+def isGoldCheck(candle_data):
+    df = pd.DataFrame(candle_data)
+    df=df['trade_price'].iloc[::-1]
+    
+    ma10 = df.rolling(window=10).mean()
+    ma30 = df.rolling(window=30).mean()
+
+    line10=ma10.iloc[-2]-ma30.iloc[-2]
+    line30=ma10.iloc[-1]-ma30.iloc[-1]
+    
+    gold = line10<0 and line30>0
+    return gold
+
+def isDeadCheck(candle_data):
+    df = pd.DataFrame(candle_data)
+    df=df['trade_price'].iloc[::-1]
+    
+    ma10 = df.rolling(window=10).mean()
+    ma30 = df.rolling(window=30).mean()
+
+    line10=ma10.iloc[-2]-ma30.iloc[-2]
+    line30=ma10.iloc[-1]-ma30.iloc[-1]
+    
+    dead = line10>0 and line30<0
+    return dead
+
 def startAuto(ticker):
     isGoldenCross = FALSE
     isDeadCross = FALSE
@@ -349,19 +390,44 @@ def startAuto(ticker):
                 if isGoldenCross == TRUE:
                     #매수 타이밍 잡기 (cci:-100 이하로 떨어지고 다시 -100을 뚫었을때)
                     if cciLow == FALSE:
-                        if cci <= -100:
-                            cci = updateCCI(ticker, cciUpdateSec)
-                            if cci <= -100:
+                        checkCnt = 0
+                        while cciLow == FALSE:
+                            candle_data = upbit_api.get_candle(ticker, '15', 200)
+
+                            if isDeadCheck(candle_data):
+                                break
+                            
+                            cci_data = upbit_api.get_cci(candle_data, 1)
+                            cci = cci_data[0]['CCI']
+                            if cci <= -99:
+                                checkCnt += 1
+                            else:
+                                checkCnt = 0
+                            
+                            if checkCnt >= 7:
                                 cciLow = TRUE
+                                break
+
+                            time.sleep(2)
                     else:
-                        if cci >= -100:
-                            cci = updateCCI(ticker, cciUpdateSec)
-                            if cci >= -100:
+                        checkCnt = 0
+                        while TRUE:
+                            candle_data = upbit_api.get_candle(ticker, '15', 200)
+
+                            if isDeadCheck(candle_data):
+                                break
+
+                            cci_data = upbit_api.get_cci(candle_data, 1)
+                            cci = cci_data[0]['CCI']
+                            if cci >= -99:
+                                checkCnt += 1
+                            else:
+                                checkCnt = 0
+
+                            if checkCnt >= 7:
                                 #매수 시점
                                 #여긴 updateCCI 함수의 sleep으로 인해 값을 갱신해 줘야 함
-                                candle_data = upbit_api.get_candle(ticker, '15', 1)
                                 currentPrice = candle_data[0]['trade_price']
-                                
                                 maxPrice = currentPrice
                                 buyPrice = currentPrice
                                 upLinePrice = buyPrice + (buyPrice * 0.005)
@@ -369,21 +435,49 @@ def startAuto(ticker):
                                 msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Buy Long ', 'CCI:', cci, 'Price:', currentPrice
                                 bot.sendMessage(chat_id="-796323955", text=msg)
                                 isBuy = TRUE   
-                                             
+                                break
+                            time.sleep(2)
+                                                                         
                 if isDeadCross == TRUE:
                     #매수 타이밍 잡기 (cci:+100 이상으로 올라가고 다시 +100으로 내려 갔을때)
                     if cciHight == FALSE:
-                        if cci >= 100:
-                            cci = updateCCI(ticker, cciUpdateSec)
-                            if cci >= 100:
+                        checkCnt = 0
+                        while cciHight == FALSE:
+                            candle_data = upbit_api.get_candle(ticker, '15', 200)
+
+                            if isGoldCheck(candle_data):
+                                break
+
+                            cci_data = upbit_api.get_cci(candle_data, 1)
+                            cci = cci_data[0]['CCI']
+                            if cci >= 99:
+                                checkCnt += 1
+                            else:
+                                checkCnt = 0
+                            
+                            if checkCnt >= 7:
                                 cciHight = TRUE
+                                break
+
+                            time.sleep(2)
                     else:
-                        if cci <= 100:
-                            cci = updateCCI(ticker, cciUpdateSec)
-                            if cci <= 100:
+                        checkCnt = 0
+                        while TRUE:
+                            candle_data = upbit_api.get_candle(ticker, '15', 200)
+
+                            if isGoldCheck(candle_data):
+                                break
+
+                            cci_data = upbit_api.get_cci(candle_data, 1)
+                            cci = cci_data[0]['CCI']
+                            if cci <= 99:
+                                checkCnt += 1
+                            else:
+                                checkCnt = 0
+
+                            if checkCnt >= 7:
                                 #매수 시점
                                 #여긴 updateCCI 함수의 sleep으로 인해 값을 갱신해 줘야 함
-                                candle_data = upbit_api.get_candle(ticker, '15', 1)
                                 currentPrice = candle_data[0]['trade_price']
                                 maxPrice = currentPrice
                                 buyPrice = currentPrice
@@ -392,6 +486,9 @@ def startAuto(ticker):
                                 msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Buy Short ', 'CCI:', cci, 'Price:', currentPrice
                                 bot.sendMessage(chat_id="-796323955", text=msg)
                                 isBuy = TRUE
+                                break
+                            time.sleep(2)
+
                             
         else:
             #구매중인 경우 판매시점 잡기
