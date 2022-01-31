@@ -261,15 +261,35 @@ def startAuto(ticker):
                     buyPrice = 0
         else:
             if isDeadCross == TRUE:
-                #데드에서 골드로 바뀐 경우
+                #데드 -> 골드로 바뀐 경우
                 if gold:
-                    isDeadCross = FALSE
+                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', current_price
+                    bot.sendMessage(chat_id="-796323955", text=msg)
+                    
                     isGoldenCross = TRUE
+                    isDeadCross = FALSE
+                    cciLow = FALSE
+                    cciHight = FALSE
+                    isBuy = FALSE
+                    upLinePrice = 0
+                    downLinePrice = 0
+                    maxPrice = 0
+                    buyPrice = 0
             elif isGoldenCross == TRUE:
-                #골드에서 데드로 바뀐 경우
+                #골드 -> 데드로 바뀐 경우
                 if dead:
-                    isDeadCross = TRUE
+                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
+                    bot.sendMessage(chat_id="-796323955", text=msg)      
+
                     isGoldenCross = FALSE
+                    isDeadCross = TRUE
+                    cciLow = FALSE
+                    cciHight = FALSE
+                    isBuy = FALSE
+                    upLinePrice = 0
+                    downLinePrice = 0
+                    maxPrice = 0
+                    buyPrice = 0
 
         if isBuy == FALSE:
             if isGoldenCross == FALSE and isDeadCross == FALSE:                
