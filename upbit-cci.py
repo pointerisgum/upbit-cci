@@ -15,12 +15,18 @@ import upbit_api
 import pyupbit
 import telegram
 from datetime import datetime
+import pandas as pd
+import openpyxl
 
 access = "xwdEMciw0PeGRfpA8xMaVtnVGmFPFxTR6dkKCnUQ"
 secret = "UOxwdGYVZflyTCbMwrlrzB0Ey44GGxSLl70xp8A4"
 slackToken = "xoxb-2958422443234-2961015128436-OlEZV7qGyaamz31X3slydehR"
 # teleToken = "5225100528:AAGL0OC4m40gsMkB9haFGm0weJMUSKGqY2U"
 teleToken = "5225100528:AAGL0OC4m40gsMkB9haFGm0weJMUSKGqY2U"
+
+rateList = []
+dateList = []
+tickerList = []
 
 bot = telegram.Bot(token=teleToken)
 # updates = bot.getUpdates()
@@ -42,7 +48,9 @@ try:
     candle_data = upbit_api.get_candle('KRW-BTC', '15', 200)
     cci = upbit_api.get_cci(candle_data, 1)
     print(cci[0]['CCI'])
-        
+    price = candle_data[0]['trade_price']
+
+
     #현재 CCI 값 (15분봉 기준)
     
 
@@ -171,6 +179,25 @@ import numpy as np
 tickers = ["KRW-BTC", "KRW-ETH", "KRW-BCH", "KRW-AAVE", "KRW-LTC", 'KRW-DOT', 'KRW-SAND']
 # tickers = ["KRW-BTC"]
 
+def saveExcel(t, c, b):
+    path = '/Users/apple/Desktop/coint.xlsx'
+    
+    rate = str(getPer(c, b))
+    rateList.append(rate)
+    date = str(datetime.now().hour) + ':' + str(datetime.now().minute)
+    dateList.append(date)
+    tickerList.append(t)
+
+    # rawData = {'time':dateList, 'ticker':tickerList, 'rate': rateList}
+    df = pd.DataFrame({'date':dateList, 'ticker':tickerList, 'rate': rateList})
+    # now = datetime.now()
+    # date = str(datetime.now().year) + '-' + str(datetime.now().month) + '-' + str(datetime.now().day)
+    # with pd.ExcelWriter(path, mode='a', engine='openpyxl') as writer:
+    #     df.to_excel(writer, index=False)
+
+    # df.to_excel(path, sheet_name = date)
+    df.to_excel(path)
+    
 def getPer(c, b):
     #(((매도가 - 매수가) / 매수가 ) * 100 ) - 0.08) * 10
     return round(((((c - b) / b) * 100) - 0.08) * 10, 2)
@@ -229,6 +256,7 @@ def startAuto(ticker):
                     sum = currentPrice - buyPrice
                     msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Long Throw', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice)
                     bot.sendMessage(chat_id="-796323955", text=msg)
+                    saveExcel(ticker, currentPrice, buyPrice)
                     
                     isGoldenCross = FALSE
                     isDeadCross = TRUE
@@ -250,6 +278,7 @@ def startAuto(ticker):
                     sum = currentPrice - buyPrice
                     msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Short Throw', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice) * -1
                     bot.sendMessage(chat_id="-796323955", text=msg)
+                    saveExcel(ticker, currentPrice, buyPrice)
                     
                     isGoldenCross = TRUE
                     isDeadCross = FALSE
@@ -281,7 +310,7 @@ def startAuto(ticker):
                 if dead:
                     msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
                     bot.sendMessage(chat_id="-796323955", text=msg)      
-
+                    
                     isGoldenCross = FALSE
                     isDeadCross = TRUE
                     cciLow = FALSE
@@ -304,7 +333,7 @@ def startAuto(ticker):
                     current_price = pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
                     msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
                     bot.sendMessage(chat_id="-796323955", text=msg)      
-                           
+                    
                 if gold:
                     call='골든크로스'
                     print(datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, call)
@@ -357,8 +386,8 @@ def startAuto(ticker):
                                 currentPrice = candle_data[0]['trade_price']
                                 maxPrice = currentPrice
                                 buyPrice = currentPrice
-                                upLinePrice = buyPrice + (buyPrice * 0.005)
-                                downLinePrice = buyPrice - (buyPrice * 0.01)
+                                upLinePrice = buyPrice + (buyPrice * 0.01)
+                                downLinePrice = buyPrice - (buyPrice * 0.005)
                                 msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Buy Short ', 'CCI:', cci, 'Price:', currentPrice
                                 bot.sendMessage(chat_id="-796323955", text=msg)
                                 isBuy = TRUE
@@ -378,7 +407,8 @@ def startAuto(ticker):
                     #10배수 썼을 경우 수익률
                     msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Long Stop Loss', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice)
                     bot.sendMessage(chat_id="-796323955", text=msg)
-
+                    saveExcel(ticker, currentPrice, buyPrice)
+                    
                     cciLow = FALSE
                     cciHight = FALSE
                     isBuy = FALSE
@@ -393,7 +423,8 @@ def startAuto(ticker):
                         #익절
                         msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Long Take Profit', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice)
                         bot.sendMessage(chat_id="-796323955", text=msg)
-
+                        saveExcel(ticker, currentPrice, buyPrice)
+                        
                         cciLow = FALSE
                         cciHight = FALSE
                         isBuy = FALSE
@@ -415,7 +446,8 @@ def startAuto(ticker):
                     #손절
                     msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Short Stop Loss', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice) * -1
                     bot.sendMessage(chat_id="-796323955", text=msg)
-
+                    saveExcel(ticker, currentPrice, buyPrice)
+                    
                     cciLow = FALSE
                     cciHight = FALSE
                     isBuy = FALSE
@@ -430,7 +462,8 @@ def startAuto(ticker):
                         #익절
                         msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Short Take Profit', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice) * -1
                         bot.sendMessage(chat_id="-796323955", text=msg)
-                          
+                        saveExcel(ticker, currentPrice, buyPrice)
+
                         cciLow = FALSE
                         cciHight = FALSE
                         isBuy = FALSE
@@ -475,8 +508,23 @@ import logging
 import threading
 import time
 
+# candle_data = upbit_api.get_candle('KRW-BTC', '15', 200)
+# currentPrice = candle_data[0]['trade_price']
+# buyPrice = currentPrice + (currentPrice * 0.002)
+
+# rate = str(getPer(currentPrice, buyPrice))
+# rateList.append(rate)
+
+# date = str(datetime.now().hour) + ':' + str(datetime.now().minute)
+# dateList.append(date)
+
+# tickerList.append('KRW-BTC')
+
+# saveExcel()
+
 for i in tickers:
     t = threading.Thread(target=startAuto, args=(i,)) 
     t.start()
     time.sleep(2)
 
+#ㅁ
