@@ -50,7 +50,6 @@ bot = telegram.Bot(token=teleToken)
 #         break
 #     time.sleep(1)
 
-    
 
 # candle_data = upbit_api.get_candle('KRW-DOT', '15', 200)
 # cci_data = upbit_api.get_cci(candle_data, 10)
@@ -62,8 +61,9 @@ try:
         
     # CCI 조회(60분봉/10개)
     candle_data = upbit_api.get_candle('KRW-BTC', '15', 200)
-    cci = upbit_api.get_cci(candle_data, 1)
-    print(cci[0]['CCI'])
+    cci = upbit_api.get_cci(candle_data, 2)
+    print(cci)
+    print(cci[1]['CCI'])
     price = candle_data[0]['trade_price']
 
 
@@ -192,7 +192,7 @@ import numpy as np
 #             "KRW-STRK", "KRW-ETC", "KRW-DOT", "KRW-NEO", "KRW-LINK", "KRW-NEAR", "KRW-REP", "KRW-WAVES", "KRW-QTUM", "KRW-FLOW",
 #             "KRW-OMG", "KRW-WEMIX", "KRW-KAVA", "KRW-GAS", "KRW-SBD", "KRW-TON", "KRW-SAND", "KRW-XTZ", "KRW-THETA", "KRW-AQT",
 #             'KRW-DAWN', 'KRW-BTT']
-tickers = ["KRW-BTC", "KRW-ETH", "KRW-BCH", "KRW-AAVE", "KRW-LTC", 'KRW-DOT', 'KRW-SAND']
+tickers = ['KRW-BTC', 'KRW-ETH', 'KRW-BCH', 'KRW-AAVE', 'KRW-LTC', 'KRW-DOT', 'KRW-SAND', 'KRW-REP', 'KRW-NEO', 'KRW-STRK', 'KRW-MTL', 'KRW-KNC', 'KRW-SOL', 'KRW-WEMIX', 'KRW-DOGE']
 # tickers = ["KRW-BTC"]
 
 def saveExcel(t, c, b):
@@ -262,6 +262,7 @@ def startAuto(ticker):
     downLinePrice = 0   #손절 라인 -0.5%
     maxPrice = 0        #고가
     buyPrice = 0        #매수 가격
+    totalRate = 0       #누적 손익
     
     while True:
         
@@ -284,58 +285,91 @@ def startAuto(ticker):
         dead = line10>0 and line30<0
         gold = line10<0 and line30>0
                
-        print(datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, 'line10: ', round(line10, 1), 'line30: ', round(line30, 1), 'ma10: ', round(ma10.iloc[-1], 1), 'ma30: ', round(ma30.iloc[-1], 1))
+        # print(datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, 'line10: ', round(line10, 1), 'line30: ', round(line30, 1), 'ma10: ', round(ma10.iloc[-1], 1), 'ma30: ', round(ma30.iloc[-1], 1))
 
-        if isBuy == TRUE:
-            #구매중에 데드가 골드로 바뀔 경우에 대한 처리
-            if dead:
-                #데드크로스
-                if isGoldenCross == TRUE:
-                    #골드가 났었는데 데드로 바뀐 경우 들고 있던 코인 시장가 매도 후 리셋                                    
-                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', currentPrice
-                    bot.sendMessage(chat_id="-796323955", text=msg)
+        # if isBuy == TRUE:
+        #     #구매중에 데드가 골드로 바뀔 경우에 대한 처리
+        #     if dead:
+        #         #데드크로스
+        #         if isGoldenCross == TRUE:
+        #             #골드가 났었는데 데드로 바뀐 경우 들고 있던 코인 시장가 매도 후 리셋                                    
+        #             msg = ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', currentPrice
+        #             bot.sendMessage(chat_id="-796323955", text=msg)
                     
-                    sum = currentPrice - buyPrice
-                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Long Throw', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice)
-                    bot.sendMessage(chat_id="-796323955", text=msg)
-                    # saveExcel(ticker, currentPrice, buyPrice)
+        #             sum = currentPrice - buyPrice
+        #             msg = ticker, ' Sell Long Throw', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice)
+        #             bot.sendMessage(chat_id="-796323955", text=msg)
+        #             # saveExcel(ticker, currentPrice, buyPrice)
                     
-                    isGoldenCross = FALSE
-                    isDeadCross = TRUE
-                    cciLow = FALSE
-                    cciHight = FALSE
-                    isBuy = FALSE
-                    upLinePrice = 0
-                    downLinePrice = 0
-                    maxPrice = 0
-                    buyPrice = 0
+        #             isGoldenCross = FALSE
+        #             isDeadCross = TRUE
+        #             cciLow = FALSE
+        #             cciHight = FALSE
+        #             isBuy = FALSE
+        #             upLinePrice = 0
+        #             downLinePrice = 0
+        #             maxPrice = 0
+        #             buyPrice = 0
                     
-            if gold:
-                #골든크로스
-                if isDeadCross == TRUE:
-                    #데드가 났었는데 골드로 바뀐 경우 들고 있던 코인 시장가 매도 후 리셋                                 
-                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', currentPrice
-                    bot.sendMessage(chat_id="-796323955", text=msg)
+        #     if gold:
+        #         #골든크로스
+        #         if isDeadCross == TRUE:
+        #             #데드가 났었는데 골드로 바뀐 경우 들고 있던 코인 시장가 매도 후 리셋                                 
+        #             msg = ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', currentPrice
+        #             bot.sendMessage(chat_id="-796323955", text=msg)
 
-                    sum = currentPrice - buyPrice
-                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Short Throw', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice) * -1
-                    bot.sendMessage(chat_id="-796323955", text=msg)
-                    # saveExcel(ticker, currentPrice, buyPrice)
+        #             sum = currentPrice - buyPrice
+        #             msg = ticker, ' Sell Short Throw', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice) * -1
+        #             bot.sendMessage(chat_id="-796323955", text=msg)
+        #             # saveExcel(ticker, currentPrice, buyPrice)
                     
-                    isGoldenCross = TRUE
-                    isDeadCross = FALSE
-                    cciLow = FALSE
-                    cciHight = FALSE
-                    isBuy = FALSE
-                    upLinePrice = 0
-                    downLinePrice = 0
-                    maxPrice = 0
-                    buyPrice = 0
-        else:
+        #             isGoldenCross = TRUE
+        #             isDeadCross = FALSE
+        #             cciLow = FALSE
+        #             cciHight = FALSE
+        #             isBuy = FALSE
+        #             upLinePrice = 0
+        #             downLinePrice = 0
+        #             maxPrice = 0
+        #             buyPrice = 0
+        # else:
+        #     if isDeadCross == TRUE:
+        #         #데드 -> 골드로 바뀐 경우
+        #         if gold:
+        #             msg = ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', current_price
+        #             bot.sendMessage(chat_id="-796323955", text=msg)
+                    
+        #             isGoldenCross = TRUE
+        #             isDeadCross = FALSE
+        #             cciLow = FALSE
+        #             cciHight = FALSE
+        #             isBuy = FALSE
+        #             upLinePrice = 0
+        #             downLinePrice = 0
+        #             maxPrice = 0
+        #             buyPrice = 0
+        #     elif isGoldenCross == TRUE:
+        #         #골드 -> 데드로 바뀐 경우
+        #         if dead:
+        #             msg = ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
+        #             bot.sendMessage(chat_id="-796323955", text=msg)      
+                    
+        #             isGoldenCross = FALSE
+        #             isDeadCross = TRUE
+        #             cciLow = FALSE
+        #             cciHight = FALSE
+        #             isBuy = FALSE
+        #             upLinePrice = 0
+        #             downLinePrice = 0
+        #             maxPrice = 0
+        #             buyPrice = 0
+
+        if isBuy == FALSE:
+            #한번이라도 골드나 데드가 났고 구매중이 아닐때 상태값이 바뀐 경우
             if isDeadCross == TRUE:
                 #데드 -> 골드로 바뀐 경우
                 if gold:
-                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', current_price
+                    msg = ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', current_price
                     bot.sendMessage(chat_id="-796323955", text=msg)
                     
                     isGoldenCross = TRUE
@@ -350,7 +384,7 @@ def startAuto(ticker):
             elif isGoldenCross == TRUE:
                 #골드 -> 데드로 바뀐 경우
                 if dead:
-                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
+                    msg = ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
                     bot.sendMessage(chat_id="-796323955", text=msg)      
                     
                     isGoldenCross = FALSE
@@ -363,7 +397,7 @@ def startAuto(ticker):
                     maxPrice = 0
                     buyPrice = 0
 
-        if isBuy == FALSE:
+            #한번도 골드나 데드가 안난 경우
             if isGoldenCross == FALSE and isDeadCross == FALSE:                
                 cci_data = upbit_api.get_cci(candle_data, 1)
                 cci = cci_data[0]['CCI']
@@ -373,7 +407,7 @@ def startAuto(ticker):
                     print(datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, call)
                     isDeadCross = TRUE
                     current_price = pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
-                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
+                    msg = ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
                     bot.sendMessage(chat_id="-796323955", text=msg)      
                     
                 if gold:
@@ -381,114 +415,51 @@ def startAuto(ticker):
                     print(datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, call)
                     isGoldenCross = TRUE
                     current_price = pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
-                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', current_price
+                    msg = ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', current_price
                     bot.sendMessage(chat_id="-796323955", text=msg)
             else:
-                cci_data = upbit_api.get_cci(candle_data, 1)
-                cci = cci_data[0]['CCI']
+                cci_data = upbit_api.get_cci(candle_data, 2)
+                cci = cci_data[1]['CCI']
                 
                 if isGoldenCross == TRUE:
                     #매수 타이밍 잡기 (cci:-100 이하로 떨어지고 다시 -100을 뚫었을때)
                     if cciLow == FALSE:
-                        checkCnt = 0
-                        while cciLow == FALSE:
-                            candle_data = upbit_api.get_candle(ticker, '15', 200)
-
-                            if isDeadCheck(candle_data):
-                                break
-                            
-                            cci_data = upbit_api.get_cci(candle_data, 1)
-                            cci = cci_data[0]['CCI']
-                            if cci <= -99:
-                                checkCnt += 1
-                            else:
-                                checkCnt = 0
-                            
-                            if checkCnt >= 7:
-                                cciLow = TRUE
-                                break
-
-                            time.sleep(2)
+                        if cci <= -100:
+                            cciLow = TRUE
+                            # msg = ticker, ' Buy Long CCI Check1 Success ', 'CCI:', cci, 'Price:', currentPrice
+                            # bot.sendMessage(chat_id="-796323955", text=msg)
                     else:
-                        checkCnt = 0
-                        while TRUE:
-                            candle_data = upbit_api.get_candle(ticker, '15', 200)
-
-                            if isDeadCheck(candle_data):
-                                break
-
-                            cci_data = upbit_api.get_cci(candle_data, 1)
-                            cci = cci_data[0]['CCI']
-                            if cci >= -99:
-                                checkCnt += 1
-                            else:
-                                checkCnt = 0
-
-                            if checkCnt >= 7:
-                                #매수 시점
-                                #여긴 updateCCI 함수의 sleep으로 인해 값을 갱신해 줘야 함
-                                currentPrice = candle_data[0]['trade_price']
-                                maxPrice = currentPrice
-                                buyPrice = currentPrice
-                                upLinePrice = buyPrice + (buyPrice * 0.005)
-                                downLinePrice = buyPrice - (buyPrice * 0.01)
-                                msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Buy Long ', 'CCI:', cci, 'Price:', currentPrice
-                                bot.sendMessage(chat_id="-796323955", text=msg)
-                                isBuy = TRUE   
-                                break
-                            time.sleep(2)
+                        if cci >= -100:
+                            #매수 시점
+                            #여긴 updateCCI 함수의 sleep으로 인해 값을 갱신해 줘야 함
+                            currentPrice = candle_data[0]['trade_price']
+                            maxPrice = currentPrice
+                            buyPrice = currentPrice
+                            upLinePrice = buyPrice + (buyPrice * 0.005)
+                            downLinePrice = buyPrice - (buyPrice * 0.007)
+                            msg = ticker, ' Buy Long ', 'CCI:', cci, 'Price:', currentPrice
+                            bot.sendMessage(chat_id="-796323955", text=msg)
+                            isBuy = TRUE   
                                                                          
                 if isDeadCross == TRUE:
                     #매수 타이밍 잡기 (cci:+100 이상으로 올라가고 다시 +100으로 내려 갔을때)
                     if cciHight == FALSE:
-                        checkCnt = 0
-                        while cciHight == FALSE:
-                            candle_data = upbit_api.get_candle(ticker, '15', 200)
-
-                            if isGoldCheck(candle_data):
-                                break
-
-                            cci_data = upbit_api.get_cci(candle_data, 1)
-                            cci = cci_data[0]['CCI']
-                            if cci >= 99:
-                                checkCnt += 1
-                            else:
-                                checkCnt = 0
-                            
-                            if checkCnt >= 7:
-                                cciHight = TRUE
-                                break
-
-                            time.sleep(2)
+                        if cci >= 100:
+                            cciHight = TRUE
+                            # msg = ticker, ' Buy Short CCI Check1 Success ', 'CCI:', cci, 'Price:', currentPrice
+                            # bot.sendMessage(chat_id="-796323955", text=msg)
                     else:
-                        checkCnt = 0
-                        while TRUE:
-                            candle_data = upbit_api.get_candle(ticker, '15', 200)
-
-                            if isGoldCheck(candle_data):
-                                break
-
-                            cci_data = upbit_api.get_cci(candle_data, 1)
-                            cci = cci_data[0]['CCI']
-                            if cci <= 99:
-                                checkCnt += 1
-                            else:
-                                checkCnt = 0
-
-                            if checkCnt >= 7:
-                                #매수 시점
-                                #여긴 updateCCI 함수의 sleep으로 인해 값을 갱신해 줘야 함
-                                currentPrice = candle_data[0]['trade_price']
-                                maxPrice = currentPrice
-                                buyPrice = currentPrice
-                                upLinePrice = buyPrice + (buyPrice * 0.01)
-                                downLinePrice = buyPrice - (buyPrice * 0.005)
-                                msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Buy Short ', 'CCI:', cci, 'Price:', currentPrice
-                                bot.sendMessage(chat_id="-796323955", text=msg)
-                                isBuy = TRUE
-                                break
-                            time.sleep(2)
-
+                        if cci <= 100:
+                            #매수 시점
+                            #여긴 updateCCI 함수의 sleep으로 인해 값을 갱신해 줘야 함
+                            currentPrice = candle_data[0]['trade_price']
+                            maxPrice = currentPrice
+                            buyPrice = currentPrice
+                            upLinePrice = buyPrice + (buyPrice * 0.007)
+                            downLinePrice = buyPrice - (buyPrice * 0.005)
+                            msg = ticker, ' Buy Short ', 'CCI:', cci, 'Price:', currentPrice
+                            bot.sendMessage(chat_id="-796323955", text=msg)
+                            isBuy = TRUE
                             
         else:
             #구매중인 경우 판매시점 잡기
@@ -503,7 +474,9 @@ def startAuto(ticker):
                 if currentPrice < downLinePrice:
                     #손절
                     #10배수 썼을 경우 수익률
-                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Long Stop Loss', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice)
+                    rate = getPer(currentPrice, buyPrice)
+                    totalRate += rate
+                    msg = ticker, ' Sell Long Stop Loss', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'Rate: ', rate, 'TotalRate: ', totalRate
                     bot.sendMessage(chat_id="-796323955", text=msg)
                     # saveExcel(ticker, currentPrice, buyPrice)
                     
@@ -514,12 +487,25 @@ def startAuto(ticker):
                     downLinePrice = 0   #손절 라인 -0.5%
                     maxPrice = 0        #고가
                     buyPrice = 0        #매수 가격
+                    
+                    if ma10.iloc[-1] > ma30.iloc[-1]:
+                        isGoldenCross = TRUE
+                        isDeadCross = FALSE
+                    elif ma10.iloc[-1] < ma30.iloc[-1]:
+                        isGoldenCross = FALSE
+                        isDeadCross = TRUE
+                    else:
+                        isGoldenCross = FALSE
+                        isDeadCross = FALSE
+
 
                 #익절 분기점(+5%)을 뚫었을 경우 고점 대비 -20% 내려오면 익절
                 if maxPrice > upLinePrice:
                     if currentPrice < maxPrice - (maxPrice * 0.002):
                         #익절
-                        msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Long Take Profit', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice)
+                        rate = getPer(currentPrice, buyPrice)
+                        totalRate += rate
+                        msg = ticker, ' Sell Long Take Profit', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'Rate: ', rate, 'TotalRate: ', totalRate
                         bot.sendMessage(chat_id="-796323955", text=msg)
                         # saveExcel(ticker, currentPrice, buyPrice)
                         
@@ -530,6 +516,16 @@ def startAuto(ticker):
                         downLinePrice = 0   #손절 라인 -0.5%
                         maxPrice = 0        #고가
                         buyPrice = 0        #매수 가격
+
+                        if ma10.iloc[-1] > ma30.iloc[-1]:
+                            isGoldenCross = TRUE
+                            isDeadCross = FALSE
+                        elif ma10.iloc[-1] < ma30.iloc[-1]:
+                            isGoldenCross = FALSE
+                            isDeadCross = TRUE
+                        else:
+                            isGoldenCross = FALSE
+                            isDeadCross = FALSE
 
                         
             if isDeadCross == TRUE:
@@ -542,7 +538,9 @@ def startAuto(ticker):
         
                 if currentPrice > upLinePrice:
                     #손절
-                    msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Short Stop Loss', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice) * -1
+                    rate = getPer(currentPrice, buyPrice) * -1
+                    totalRate += rate
+                    msg = ticker, ' Sell Short Stop Loss', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'Rate: ', rate, 'TotalRate: ', totalRate
                     bot.sendMessage(chat_id="-796323955", text=msg)
                     # saveExcel(ticker, currentPrice, buyPrice)
                     
@@ -554,11 +552,23 @@ def startAuto(ticker):
                     maxPrice = 0        #고가
                     buyPrice = 0        #매수 가격
 
+                    if ma10.iloc[-1] > ma30.iloc[-1]:
+                        isGoldenCross = TRUE
+                        isDeadCross = FALSE
+                    elif ma10.iloc[-1] < ma30.iloc[-1]:
+                        isGoldenCross = FALSE
+                        isDeadCross = TRUE
+                    else:
+                        isGoldenCross = FALSE
+                        isDeadCross = FALSE
+
                 #익절 분기점(+5%)을 뚫었을 경우 고점 대비 -20% 내려오면 익절
                 if maxPrice < downLinePrice:
                     if currentPrice > maxPrice + (maxPrice * 0.002):
                         #익절
-                        msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Short Take Profit', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'rate:', getPer(currentPrice, buyPrice) * -1
+                        rate = getPer(currentPrice, buyPrice) * -1
+                        totalRate += rate
+                        msg = ticker, ' Sell Short Take Profit', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'Rate: ', rate, 'TotalRate: ', totalRate
                         bot.sendMessage(chat_id="-796323955", text=msg)
                         # saveExcel(ticker, currentPrice, buyPrice)
 
@@ -570,12 +580,22 @@ def startAuto(ticker):
                         maxPrice = 0        #고가
                         buyPrice = 0        #매수 가격
 
-                
+                        if ma10.iloc[-1] > ma30.iloc[-1]:
+                            isGoldenCross = TRUE
+                            isDeadCross = FALSE
+                        elif ma10.iloc[-1] < ma30.iloc[-1]:
+                            isGoldenCross = FALSE
+                            isDeadCross = TRUE
+                        else:
+                            isGoldenCross = FALSE
+                            isDeadCross = FALSE
+                            
+
             # if isGoldenCross == TRUE:
             #     if cci >= 100:
             #         #cci가 100 이상 올라갔을때 판매
             #         current_price = pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
-            #         msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Long ', 'CCI:', cci, 'Price:', current_price
+            #         msg = ticker, ' Sell Long ', 'CCI:', cci, 'Price:', current_price
             #         bot.sendMessage(chat_id="-796323955", text=msg)
                     
             #         #판매 후 리셋
@@ -589,7 +609,7 @@ def startAuto(ticker):
             #     if cci <= -100:
             #         #cci가 100 이하로 내려 갔을때 판매
             #         current_price = pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
-            #         msg = datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, ' Sell Short ', 'CCI:', cci, 'Price:', current_price
+            #         msg = ticker, ' Sell Short ', 'CCI:', cci, 'Price:', current_price
             #         bot.sendMessage(chat_id="-796323955", text=msg)
                     
             #         #판매 후 리셋
