@@ -192,7 +192,7 @@ import numpy as np
 #             "KRW-STRK", "KRW-ETC", "KRW-DOT", "KRW-NEO", "KRW-LINK", "KRW-NEAR", "KRW-REP", "KRW-WAVES", "KRW-QTUM", "KRW-FLOW",
 #             "KRW-OMG", "KRW-WEMIX", "KRW-KAVA", "KRW-GAS", "KRW-SBD", "KRW-TON", "KRW-SAND", "KRW-XTZ", "KRW-THETA", "KRW-AQT",
 #             'KRW-DAWN', 'KRW-BTT']
-tickers = ['KRW-BTC', 'KRW-ETH', 'KRW-BCH', 'KRW-AAVE', 'KRW-LTC', 'KRW-DOT', 'KRW-SAND', 'KRW-REP', 'KRW-NEO', 'KRW-STRK', 'KRW-MTL', 'KRW-KNC', 'KRW-SOL', 'KRW-WEMIX', 'KRW-DOGE']
+tickers = ['KRW-BTC', 'KRW-ETH', 'KRW-BCH', 'KRW-AAVE', 'KRW-LTC', 'KRW-DOT', 'KRW-SAND', 'KRW-REP', 'KRW-NEO', 'KRW-SOL', 'KRW-DOGE']
 # tickers = ["KRW-BTC"]
 
 def saveExcel(t, c, b):
@@ -263,6 +263,7 @@ def startAuto(ticker):
     maxPrice = 0        #고가
     buyPrice = 0        #매수 가격
     totalRate = 0       #누적 손익
+    allTotalRate = 0    #전체코인 누적 손익
     
     while True:
         
@@ -369,8 +370,8 @@ def startAuto(ticker):
             if isDeadCross == TRUE:
                 #데드 -> 골드로 바뀐 경우
                 if gold:
-                    msg = ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', current_price
-                    bot.sendMessage(chat_id="-796323955", text=msg)
+                    # msg = ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', current_price
+                    # bot.sendMessage(chat_id="-796323955", text=msg)
                     
                     isGoldenCross = TRUE
                     isDeadCross = FALSE
@@ -384,8 +385,8 @@ def startAuto(ticker):
             elif isGoldenCross == TRUE:
                 #골드 -> 데드로 바뀐 경우
                 if dead:
-                    msg = ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
-                    bot.sendMessage(chat_id="-796323955", text=msg)      
+                    # msg = ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
+                    # bot.sendMessage(chat_id="-796323955", text=msg)      
                     
                     isGoldenCross = FALSE
                     isDeadCross = TRUE
@@ -407,16 +408,16 @@ def startAuto(ticker):
                     print(datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, call)
                     isDeadCross = TRUE
                     current_price = pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
-                    msg = ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
-                    bot.sendMessage(chat_id="-796323955", text=msg)      
+                    # msg = ticker, ' Dead Cross  ', 'CCI:', cci, 'Price:', current_price
+                    # bot.sendMessage(chat_id="-796323955", text=msg)      
                     
                 if gold:
                     call='골든크로스'
                     print(datetime.now().strftime("%Y/%m/%d, %H:%M:%S"), ticker, call)
                     isGoldenCross = TRUE
                     current_price = pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
-                    msg = ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', current_price
-                    bot.sendMessage(chat_id="-796323955", text=msg)
+                    # msg = ticker, ' Golden Cross  ', 'CCI:', cci, 'Price:', current_price
+                    # bot.sendMessage(chat_id="-796323955", text=msg)
             else:
                 cci_data = upbit_api.get_cci(candle_data, 2)
                 cci = cci_data[1]['CCI']
@@ -478,6 +479,11 @@ def startAuto(ticker):
                     totalRate += rate
                     msg = ticker, ' Sell Long Stop Loss', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'Rate: ', rate, 'TotalRate: ', totalRate
                     bot.sendMessage(chat_id="-796323955", text=msg)
+                    
+                    allTotalRate += totalRate
+                    msg = 'All Total Rate :', allTotalRate
+                    bot.sendMessage(chat_id="-796323955", text=msg)
+                    
                     # saveExcel(ticker, currentPrice, buyPrice)
                     
                     cciLow = FALSE
@@ -509,6 +515,10 @@ def startAuto(ticker):
                         bot.sendMessage(chat_id="-796323955", text=msg)
                         # saveExcel(ticker, currentPrice, buyPrice)
                         
+                        allTotalRate += totalRate
+                        msg = 'All Total Rate :', allTotalRate
+                        bot.sendMessage(chat_id="-796323955", text=msg)
+
                         cciLow = FALSE
                         cciHight = FALSE
                         isBuy = FALSE
@@ -544,6 +554,10 @@ def startAuto(ticker):
                     bot.sendMessage(chat_id="-796323955", text=msg)
                     # saveExcel(ticker, currentPrice, buyPrice)
                     
+                    allTotalRate += totalRate
+                    msg = 'All Total Rate :', allTotalRate
+                    bot.sendMessage(chat_id="-796323955", text=msg)
+
                     cciLow = FALSE
                     cciHight = FALSE
                     isBuy = FALSE
@@ -571,6 +585,10 @@ def startAuto(ticker):
                         msg = ticker, ' Sell Short Take Profit', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'Rate: ', rate, 'TotalRate: ', totalRate
                         bot.sendMessage(chat_id="-796323955", text=msg)
                         # saveExcel(ticker, currentPrice, buyPrice)
+
+                        allTotalRate += totalRate
+                        msg = 'All Total Rate :', allTotalRate
+                        bot.sendMessage(chat_id="-796323955", text=msg)
 
                         cciLow = FALSE
                         cciHight = FALSE
