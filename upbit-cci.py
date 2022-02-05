@@ -192,8 +192,8 @@ import numpy as np
 #             "KRW-STRK", "KRW-ETC", "KRW-DOT", "KRW-NEO", "KRW-LINK", "KRW-NEAR", "KRW-REP", "KRW-WAVES", "KRW-QTUM", "KRW-FLOW",
 #             "KRW-OMG", "KRW-WEMIX", "KRW-KAVA", "KRW-GAS", "KRW-SBD", "KRW-TON", "KRW-SAND", "KRW-XTZ", "KRW-THETA", "KRW-AQT",
 #             'KRW-DAWN', 'KRW-BTT']
-tickers = ['KRW-BTC', 'KRW-ETH', 'KRW-BCH', 'KRW-AAVE', 'KRW-LTC', 'KRW-DOT', 'KRW-SAND', 'KRW-REP', 'KRW-NEO', 'KRW-SOL', 'KRW-DOGE']
-# tickers = ["KRW-BTC"]
+# tickers = ['KRW-BTC', 'KRW-ETH', 'KRW-BCH', 'KRW-AAVE', 'KRW-LTC', 'KRW-DOT', 'KRW-SAND', 'KRW-REP', 'KRW-NEO', 'KRW-SOL', 'KRW-DOGE']
+tickers = ["KRW-BTC"]
 
 def saveExcel(t, c, b):
     path = '/home/ubuntu/upbit-cci/coint.xlsx'
@@ -227,7 +227,7 @@ def updateCCI(ticker, sleepSec):
 
 def isGoldCheck(candle_data):
     df = pd.DataFrame(candle_data)
-    df=df['trade_price'].iloc[::-1]
+    df=df['trade_price'].iloc[::-1] 
     
     ma10 = df.rolling(window=10).mean()
     ma30 = df.rolling(window=30).mean()
@@ -263,7 +263,6 @@ def startAuto(ticker):
     maxPrice = 0        #고가
     buyPrice = 0        #매수 가격
     totalRate = 0       #누적 손익
-    allTotalRate = 0    #전체코인 누적 손익
     
     while True:
         
@@ -479,11 +478,7 @@ def startAuto(ticker):
                     totalRate += rate
                     msg = ticker, ' Sell Long Stop Loss', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'Rate: ', rate, 'TotalRate: ', totalRate
                     bot.sendMessage(chat_id="-796323955", text=msg)
-                    
-                    allTotalRate += totalRate
-                    msg = 'All Total Rate :', allTotalRate
-                    bot.sendMessage(chat_id="-796323955", text=msg)
-                    
+                                        
                     # saveExcel(ticker, currentPrice, buyPrice)
                     
                     cciLow = FALSE
@@ -515,10 +510,6 @@ def startAuto(ticker):
                         bot.sendMessage(chat_id="-796323955", text=msg)
                         # saveExcel(ticker, currentPrice, buyPrice)
                         
-                        allTotalRate += totalRate
-                        msg = 'All Total Rate :', allTotalRate
-                        bot.sendMessage(chat_id="-796323955", text=msg)
-
                         cciLow = FALSE
                         cciHight = FALSE
                         isBuy = FALSE
@@ -554,10 +545,6 @@ def startAuto(ticker):
                     bot.sendMessage(chat_id="-796323955", text=msg)
                     # saveExcel(ticker, currentPrice, buyPrice)
                     
-                    allTotalRate += totalRate
-                    msg = 'All Total Rate :', allTotalRate
-                    bot.sendMessage(chat_id="-796323955", text=msg)
-
                     cciLow = FALSE
                     cciHight = FALSE
                     isBuy = FALSE
@@ -585,10 +572,6 @@ def startAuto(ticker):
                         msg = ticker, ' Sell Short Take Profit', 'CCI:', cci, 'Price:', currentPrice, 'sum:', sum, 'Rate: ', rate, 'TotalRate: ', totalRate
                         bot.sendMessage(chat_id="-796323955", text=msg)
                         # saveExcel(ticker, currentPrice, buyPrice)
-
-                        allTotalRate += totalRate
-                        msg = 'All Total Rate :', allTotalRate
-                        bot.sendMessage(chat_id="-796323955", text=msg)
 
                         cciLow = FALSE
                         cciHight = FALSE
@@ -665,4 +648,4 @@ for i in tickers:
     t.start()
     time.sleep(2)
 
-#ㅁ
+#all total rate 삭제adasd
